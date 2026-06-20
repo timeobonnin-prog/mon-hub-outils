@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hub d'outils futuriste</title>
+    <title>Calculatrice & Convertisseur</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -14,7 +14,7 @@
             justify-content: center;
             align-items: center;
             color: #e0e0ff;
-            overflow-x: hidden;
+            padding: 20px;
         }
         .bg-particles {
             position: fixed; top:0; left:0; width:100%; height:100%; pointer-events: none; z-index:0;
@@ -32,55 +32,118 @@
             backdrop-filter: blur(25px);
             border-radius: 24px;
             border: 1px solid rgba(0,229,255,0.25);
-            box-shadow: 0 0 40px rgba(0,229,255,0.15), 0 0 80px rgba(179,136,255,0.1);
+            box-shadow: 0 0 40px rgba(0,229,255,0.15);
             width: 100%;
-            max-width: 650px;
+            max-width: 450px;
             padding: 20px;
             z-index: 1;
             display: flex;
             flex-direction: column;
             gap: 20px;
-            transition: all 0.2s;
         }
         .nav {
             display: flex;
             justify-content: center;
-            gap: 8px;
-            flex-wrap: wrap;
+            gap: 10px;
         }
         .nav-btn {
             background: transparent;
             border: 1px solid #00e5ff;
             color: #00e5ff;
-            padding: 10px 16px;
+            padding: 10px 24px;
             border-radius: 20px;
             font-weight: bold;
             cursor: pointer;
             transition: 0.2s;
-            font-size: 0.9rem;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
+            letter-spacing: 1px;
         }
-        .nav-btn:hover, .nav-btn.active {
+        .nav-btn.active {
             background: #00e5ff;
             color: #0a0a14;
             box-shadow: 0 0 20px #00e5ff;
         }
-        .tool-container {
+        .tab {
             display: none;
-            animation: fadeIn 0.3s ease;
+            animation: fade 0.3s;
         }
-        .tool-container.active {
+        .tab.active {
             display: block;
         }
-        @keyframes fadeIn {
-            from { opacity:0; transform: translateY(8px); }
+        @keyframes fade {
+            from { opacity:0; transform: translateY(5px); }
             to { opacity:1; transform: translateY(0); }
         }
-        input, select, button {
+        /* Calculatrice */
+        .calc-display {
+            background: rgba(10,15,25,0.8);
+            border: 1px solid #b388ff;
+            border-radius: 12px;
+            padding: 20px 15px;
+            font-size: 2rem;
+            text-align: right;
+            color: #e0e0ff;
+            min-height: 70px;
+            word-break: break-all;
+            margin-bottom: 15px;
+        }
+        .keys {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        .key {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid #00e5ff;
+            color: #00e5ff;
+            padding: 18px 0;
+            border-radius: 12px;
+            font-size: 1.3rem;
+            cursor: pointer;
+            transition: 0.1s;
+            text-align: center;
+            user-select: none;
+            font-weight: bold;
+        }
+        .key:active {
+            background: #00e5ff;
+            color: #000;
+            box-shadow: 0 0 20px #00e5ff;
+            transform: scale(0.95);
+        }
+        .key.operator {
+            border-color: #ff4081;
+            color: #ff4081;
+        }
+        .key.operator:active {
+            background: #ff4081;
+            color: white;
+        }
+        .key.equals {
+            background: #00e5ff;
+            color: #0a0a14;
+            border-color: #00e5ff;
+        }
+        .key.equals:active {
+            box-shadow: 0 0 30px #00e5ff;
+        }
+        .key.clear {
+            border-color: #ff4081;
+            color: #ff4081;
+        }
+        /* Convertisseur */
+        .converter-box {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        select, input {
             background: rgba(255,255,255,0.05);
             border: 1px solid #b388ff;
             border-radius: 10px;
@@ -90,18 +153,15 @@
             outline: none;
             transition: 0.2s;
         }
-        input:focus, select:focus {
+        select:focus, input:focus {
             border-color: #00e5ff;
-            box-shadow: 0 0 12px rgba(0,229,255,0.3);
+            box-shadow: 0 0 10px #00e5ff55;
         }
-        .card {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(179,136,255,0.3);
-            border-radius: 16px;
-            padding: 15px;
-            margin-bottom: 15px;
+        option {
+            background: #1a1a2e;
+            color: #e0e0ff;
         }
-        .badge {
+        .result-badge {
             background: rgba(0,229,255,0.1);
             border: 1px solid #00e5ff;
             border-radius: 12px;
@@ -109,105 +169,39 @@
             text-align: center;
             font-weight: bold;
             color: #00e5ff;
-        }
-        .row {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        .swap-icon {
-            color: #ff4081;
-            font-size: 1.5rem;
-            cursor: pointer;
-            user-select: none;
-            transition: 0.3s;
-        }
-        .swap-icon:hover {
-            text-shadow: 0 0 15px #ff4081;
-            transform: rotate(180deg);
-        }
-        .calc-input {
-            width: 100%;
-            font-size: 1.3rem;
-            background: rgba(10,15,25,0.7);
-            border: 1px solid #00e5ff;
-            border-radius: 12px;
-            padding: 15px;
-            color: #e0e0ff;
-        }
-        .calc-result {
-            font-size: 1.6rem;
-            color: #ff4081;
-            margin-top: 5px;
-            min-height: 2rem;
+            font-size: 1.2rem;
         }
         .table-title {
-            font-size: 1rem;
+            font-size: 0.9rem;
             color: #b388ff;
-            margin: 15px 0 5px;
-            letter-spacing: 1px;
+            margin: 10px 0 5px;
         }
         .conversion-table {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px,1fr));
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
             gap: 6px;
+            margin-bottom: 10px;
         }
         .table-item {
             background: rgba(255,255,255,0.03);
             border: 1px solid #333;
-            border-radius: 8px;
-            padding: 8px;
+            border-radius: 6px;
+            padding: 6px;
             text-align: center;
             cursor: pointer;
             transition: 0.2s;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
         }
         .table-item:hover {
             border-color: #00e5ff;
-            box-shadow: 0 0 10px rgba(0,229,255,0.3);
+            box-shadow: 0 0 8px rgba(0,229,255,0.3);
         }
-        .pomodoro-display {
-            font-size: 3.5rem;
+        .table-item .unit {
+            color: #b388ff;
             font-weight: bold;
-            text-align: center;
-            color: #00e5ff;
-            text-shadow: 0 0 20px #00e5ff;
-            margin: 10px 0;
-            letter-spacing: 3px;
         }
-        /* Vérificateur de mot de passe */
-        .strength-meter {
-            width: 100%;
-            height: 10px;
-            background: #333;
-            border-radius: 10px;
-            margin: 10px 0;
-            overflow: hidden;
-        }
-        .strength-fill {
-            height: 100%;
-            width: 0%;
-            background: #ff4081;
-            border-radius: 10px;
-            transition: width 0.3s, background 0.3s;
-        }
-        .strength-label {
-            text-align: center;
-            font-weight: bold;
-            color: #ff4081;
-        }
-        .qr-container {
-            text-align: center;
-        }
-        .qr-container img {
-            background: white;
-            padding: 10px;
-            border-radius: 12px;
-        }
-        @media (max-width: 500px) {
-            .app { padding: 15px; }
-            .nav-btn { padding: 8px 12px; font-size: 0.8rem; }
+        .table-item .value {
+            color: #e0e0ff;
         }
     </style>
 </head>
@@ -215,77 +209,60 @@
 <div class="bg-particles" id="particles"></div>
 
 <div class="app">
-    <div class="nav" id="nav">
-        <button class="nav-btn active" data-tool="calc">🧮 Calcul</button>
-        <button class="nav-btn" data-tool="conv">🔄 Conversion</button>
-        <button class="nav-btn" data-tool="pomo">🍅 Pomodoro</button>
-        <button class="nav-btn" data-tool="pass">🔐 Vérif. Mot de passe</button>
-        <button class="nav-btn" data-tool="qr">📱 QR Code</button>
+    <div class="nav">
+        <button class="nav-btn active" data-tab="calc">🧮 Calculatrice</button>
+        <button class="nav-btn" data-tab="conv">🔄 Convertisseur</button>
     </div>
 
     <!-- Calculatrice -->
-    <div class="tool-container active" id="tool-calc">
-        <input type="text" class="calc-input" id="calcInput" placeholder="Ex : 2+2*3, sin(45), √(16)" autocomplete="off">
-        <div class="calc-result" id="calcResult">= 0</div>
-        <small style="color:#777;">Tape ton calcul, résultat instantané</small>
+    <div class="tab active" id="tab-calc">
+        <div class="calc-display" id="calcDisplay">0</div>
+        <div class="keys">
+            <button class="key clear" data-action="clear">AC</button>
+            <button class="key" data-action="back">⌫</button>
+            <button class="key" data-action="pi">π</button>
+            <button class="key operator" data-action="/">÷</button>
+
+            <button class="key" data-action="7">7</button>
+            <button class="key" data-action="8">8</button>
+            <button class="key" data-action="9">9</button>
+            <button class="key operator" data-action="*">×</button>
+
+            <button class="key" data-action="4">4</button>
+            <button class="key" data-action="5">5</button>
+            <button class="key" data-action="6">6</button>
+            <button class="key operator" data-action="-">−</button>
+
+            <button class="key" data-action="1">1</button>
+            <button class="key" data-action="2">2</button>
+            <button class="key" data-action="3">3</button>
+            <button class="key operator" data-action="+">+</button>
+
+            <button class="key" data-action="0">0</button>
+            <button class="key" data-action=".">.</button>
+            <button class="key" data-action="sqrt">√</button>
+            <button class="key equals" data-action="=">=</button>
+        </div>
     </div>
 
     <!-- Convertisseur -->
-    <div class="tool-container" id="tool-conv">
-        <div class="row">
-            <input type="number" id="convValue" value="1" step="any" style="width:100px;">
-            <select id="convType">
+    <div class="tab" id="tab-conv">
+        <div class="converter-box">
+            <select id="unitCategory">
                 <option value="volume">Volume</option>
                 <option value="masse">Masse</option>
                 <option value="longueur">Longueur</option>
                 <option value="température">Température</option>
             </select>
-            <select id="convFrom"></select>
-            <span class="swap-icon" id="swapBtn">⇄</span>
-            <select id="convTo"></select>
-        </div>
-        <div class="badge" id="convResult" style="margin:10px 0;">1 litre = 1000 mL</div>
-        <div class="table-title">📋 Tables de référence (clique pour copier)</div>
-        <div id="referenceTables"></div>
-    </div>
-
-    <!-- Pomodoro -->
-    <div class="tool-container" id="tool-pomo">
-        <div class="pomodoro-display" id="pomoDisplay">25:00</div>
-        <div class="row" style="justify-content:center;">
-            <button id="pomoStart" style="background:#00e5ff; color:#0a0a14; border:none; font-weight:bold; padding:10px 20px; border-radius:20px;">Démarrer</button>
-            <button id="pomoReset" style="background:transparent; border:1px solid #ff4081; color:#ff4081; padding:10px 20px; border-radius:20px;">Reset</button>
-        </div>
-        <div class="row" style="justify-content:center; margin-top:10px; gap:5px;">
-            <button class="nav-btn" data-duration="25" style="font-size:0.8rem;">25 min</button>
-            <button class="nav-btn" data-duration="15" style="font-size:0.8rem;">15 min</button>
-            <button class="nav-btn" data-duration="5" style="font-size:0.8rem;">5 min</button>
-        </div>
-    </div>
-
-    <!-- Vérificateur de mot de passe -->
-    <div class="tool-container" id="tool-pass">
-        <input type="text" id="passwordInput" placeholder="Tape un mot de passe pour vérifier sa force" autocomplete="off" style="width:100%; margin-bottom:10px;">
-        <div class="strength-meter">
-            <div class="strength-fill" id="strengthFill"></div>
-        </div>
-        <div class="strength-label" id="strengthLabel">Entrez un mot de passe</div>
-        <ul style="color:#b388ff; font-size:0.85rem; margin-top:10px; padding-left:20px;">
-            <li>Au moins 8 caractères</li>
-            <li>Majuscules & minuscules</li>
-            <li>Chiffres</li>
-            <li>Caractères spéciaux</li>
-        </ul>
-    </div>
-
-    <!-- QR Code -->
-    <div class="tool-container" id="tool-qr">
-        <div class="qr-container">
-            <input type="text" id="qrText" placeholder="Texte ou URL" style="width:100%; margin-bottom:10px;">
-            <button id="qrGenerate" style="background:#00e5ff; color:#0a0a14; border:none; padding:10px 20px; border-radius:20px; font-weight:bold;">Créer QR</button>
-            <div style="margin-top:15px;">
-                <img id="qrImage" src="" alt="QR Code" style="display:none; max-width:200px;">
+            <div class="row">
+                <input type="number" id="convInput" value="1" step="any" style="width:100px;">
+                <select id="fromUnit"></select>
+                <span style="color:#ff4081; font-size:1.5rem;">=</span>
+                <select id="toUnit"></select>
             </div>
+            <div class="result-badge" id="convResult">1 litre = 1000 mL</div>
+            <div class="table-title">📋 Table de référence</div>
+            <div class="conversion-table" id="referenceTable"></div>
         </div>
     </div>
 </div>
@@ -294,7 +271,7 @@
 (() => {
     // Particules
     const particles = document.getElementById('particles');
-    for (let i=0; i<60; i++) {
+    for (let i=0; i<40; i++) {
         const p = document.createElement('div');
         p.className = 'particle';
         p.style.left = Math.random()*100+'%';
@@ -304,34 +281,60 @@
         particles.appendChild(p);
     }
 
-    // Navigation
-    const navBtns = document.querySelectorAll('.nav-btn[data-tool]');
-    const toolContainers = document.querySelectorAll('.tool-container');
+    // Navigation onglets
+    const navBtns = document.querySelectorAll('.nav-btn');
+    const tabs = document.querySelectorAll('.tab');
     navBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             navBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            toolContainers.forEach(tc => tc.classList.remove('active'));
-            document.getElementById('tool-'+btn.dataset.tool).classList.add('active');
+            tabs.forEach(t => t.classList.remove('active'));
+            document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
         });
     });
 
-    // Calculatrice
-    const calcInput = document.getElementById('calcInput');
-    const calcResult = document.getElementById('calcResult');
-    calcInput.addEventListener('input', () => {
-        let expr = calcInput.value.trim();
-        if (!expr) { calcResult.textContent = '= 0'; return; }
-        expr = expr.replace(/×/g,'*').replace(/÷/g,'/').replace(/−/g,'-');
-        expr = expr.replace(/π/g, Math.PI);
-        expr = expr.replace(/√\(/g, 'Math.sqrt(');
-        try {
-            const res = Function('"use strict"; return ('+expr+')')();
-            calcResult.textContent = '= '+res;
-        } catch { calcResult.textContent = '?'; }
+    // ========== CALCULATRICE ==========
+    let expression = '';
+    const display = document.getElementById('calcDisplay');
+    function updateDisplay() {
+        display.textContent = expression || '0';
+    }
+    document.querySelector('.keys').addEventListener('click', (e) => {
+        const btn = e.target.closest('button');
+        if (!btn) return;
+        const action = btn.dataset.action;
+        if (action === 'clear') {
+            expression = '';
+            updateDisplay();
+        } else if (action === 'back') {
+            expression = expression.slice(0, -1);
+            updateDisplay();
+        } else if (action === '=') {
+            try {
+                let ex = expression.replace(/×/g,'*').replace(/÷/g,'/').replace(/−/g,'-');
+                ex = ex.replace(/π/g, Math.PI);
+                ex = ex.replace(/√/g, 'Math.sqrt');
+                const result = Function('"use strict"; return ('+ex+')')();
+                expression = result.toString();
+                updateDisplay();
+            } catch {
+                display.textContent = 'Erreur';
+                expression = '';
+            }
+        } else if (action === 'sqrt') {
+            expression += '√(';
+            updateDisplay();
+        } else if (action === 'pi') {
+            expression += 'π';
+            updateDisplay();
+        } else {
+            // chiffres, opérateurs, point
+            expression += action;
+            updateDisplay();
+        }
     });
 
-    // Convertisseur
+    // ========== CONVERTISSEUR ==========
     const unitData = {
         volume: {
             units: { 'litre (L)':1, 'millilitre (mL)':1000, 'mètre cube (m³)':0.001, 'gallon US':0.264172, 'pinte US':2.11338, 'cuillère à soupe':66.6667 },
@@ -351,36 +354,38 @@
         }
     };
 
-    const convValue = document.getElementById('convValue');
-    const convType = document.getElementById('convType');
-    const convFrom = document.getElementById('convFrom');
-    const convTo = document.getElementById('convTo');
+    const categorySelect = document.getElementById('unitCategory');
+    const fromSelect = document.getElementById('fromUnit');
+    const toSelect = document.getElementById('toUnit');
+    const convInput = document.getElementById('convInput');
     const convResult = document.getElementById('convResult');
-    const swapBtn = document.getElementById('swapBtn');
-    const refTables = document.getElementById('referenceTables');
+    const refTable = document.getElementById('referenceTable');
 
     function populateUnits() {
-        const type = convType.value;
-        const units = unitData[type].units;
-        convFrom.innerHTML = '';
-        convTo.innerHTML = '';
+        const cat = categorySelect.value;
+        const units = unitData[cat].units;
+        fromSelect.innerHTML = '';
+        toSelect.innerHTML = '';
         Object.keys(units).forEach(u => {
-            convFrom.innerHTML += `<option value="${u}">${u}</option>`;
-            convTo.innerHTML += `<option value="${u}">${u}</option>`;
+            fromSelect.innerHTML += `<option value="${u}">${u}</option>`;
+            toSelect.innerHTML += `<option value="${u}">${u}</option>`;
         });
-        convFrom.value = unitData[type].base;
-        convTo.value = Object.keys(units)[1] || unitData[type].base;
+        fromSelect.value = unitData[cat].base;
+        toSelect.value = Object.keys(units)[1] || unitData[cat].base;
         convert();
-        renderReferenceTables(type);
+        buildReferenceTable();
     }
 
     function convert() {
-        const type = convType.value;
-        const value = parseFloat(convValue.value);
-        if (isNaN(value)) { convResult.textContent = 'Valeur invalide'; return; }
-        const fromUnit = convFrom.value;
-        const toUnit = convTo.value;
-        if (type === 'température') {
+        const cat = categorySelect.value;
+        const value = parseFloat(convInput.value);
+        if (isNaN(value)) {
+            convResult.textContent = 'Valeur invalide';
+            return;
+        }
+        const fromUnit = fromSelect.value;
+        const toUnit = toSelect.value;
+        if (cat === 'température') {
             let celsius;
             if (fromUnit === 'Celsius') celsius = value;
             else if (fromUnit === 'Fahrenheit') celsius = (value-32)*5/9;
@@ -389,28 +394,32 @@
             if (toUnit === 'Celsius') result = celsius;
             else if (toUnit === 'Fahrenheit') result = celsius*9/5+32;
             else if (toUnit === 'Kelvin') result = celsius+273.15;
-            convResult.textContent = result.toFixed(2)+' '+toUnit;
+            convResult.textContent = `${result.toFixed(2)} ${toUnit}`;
         } else {
-            const base = value / unitData[type].units[fromUnit];
-            const result = base * unitData[type].units[toUnit];
-            convResult.textContent = result.toFixed(4)+' '+toUnit;
+            const base = value / unitData[cat].units[fromUnit];
+            const result = base * unitData[cat].units[toUnit];
+            convResult.textContent = `${result.toFixed(4)} ${toUnit}`;
         }
     }
 
-    function renderReferenceTables(type) {
-        const units = unitData[type].units;
+    function buildReferenceTable() {
+        const cat = categorySelect.value;
+        if (cat === 'température') {
+            refTable.innerHTML = '<div style="grid-column:span 3; color:#777;">Table non disponible pour les températures</div>';
+            return;
+        }
+        const units = unitData[cat].units;
         const baseUnit = Object.keys(units)[0];
-        let html = '<div class="conversion-table">';
+        let html = '';
         for (let unit in units) {
-            if (type === 'température') continue;
             const ratio = units[unit] / units[baseUnit];
             html += `<div class="table-item" data-copy="1 ${unit} = ${ratio.toFixed(4)} ${baseUnit}">
-                <div style="color:#b388ff;">1 ${unit.split(' (')[0]}</div>
-                <div>= ${ratio.toFixed(4)} ${baseUnit.split(' (')[0]}</div>
+                <div class="unit">1 ${unit.split(' (')[0]}</div>
+                <div class="value">= ${ratio.toFixed(4)} ${baseUnit.split(' (')[0]}</div>
             </div>`;
         }
-        html += '</div>';
-        refTables.innerHTML = html;
+        refTable.innerHTML = html;
+        // clic pour copier
         document.querySelectorAll('.table-item').forEach(item => {
             item.addEventListener('click', () => {
                 navigator.clipboard.writeText(item.dataset.copy).catch(() => {});
@@ -420,119 +429,13 @@
         });
     }
 
-    convType.addEventListener('change', populateUnits);
-    convValue.addEventListener('input', convert);
-    convFrom.addEventListener('change', convert);
-    convTo.addEventListener('change', convert);
-    swapBtn.addEventListener('click', () => {
-        [convFrom.value, convTo.value] = [convFrom.value, convTo.value];
-        convert();
-    });
+    categorySelect.addEventListener('change', populateUnits);
+    fromSelect.addEventListener('change', convert);
+    toSelect.addEventListener('change', convert);
+    convInput.addEventListener('input', convert);
 
+    // initialisation
     populateUnits();
-
-    // Pomodoro
-    let pomoInterval, pomoTime = 25*60, pomoRunning = false;
-    const pomoDisplay = document.getElementById('pomoDisplay');
-    const pomoStart = document.getElementById('pomoStart');
-    const pomoReset = document.getElementById('pomoReset');
-    function updatePomoDisplay() {
-        const m = Math.floor(pomoTime/60), s = pomoTime%60;
-        pomoDisplay.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-    }
-    pomoStart.addEventListener('click', () => {
-        if (pomoRunning) {
-            clearInterval(pomoInterval);
-            pomoRunning = false;
-            pomoStart.textContent = 'Démarrer';
-        } else {
-            if (pomoTime <= 0) pomoTime = 25*60;
-            pomoInterval = setInterval(() => {
-                if (pomoTime > 0) {
-                    pomoTime--;
-                    updatePomoDisplay();
-                } else {
-                    clearInterval(pomoInterval);
-                    pomoRunning = false;
-                    pomoStart.textContent = 'Démarrer';
-                    alert('Pomodoro terminé !');
-                }
-            }, 1000);
-            pomoRunning = true;
-            pomoStart.textContent = 'Pause';
-        }
-    });
-    pomoReset.addEventListener('click', () => {
-        clearInterval(pomoInterval);
-        pomoRunning = false;
-        pomoTime = 25*60;
-        updatePomoDisplay();
-        pomoStart.textContent = 'Démarrer';
-    });
-    document.querySelectorAll('[data-duration]').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const mins = parseInt(btn.dataset.duration);
-            pomoTime = mins*60;
-            updatePomoDisplay();
-            if (pomoRunning) {
-                clearInterval(pomoInterval);
-                pomoRunning = false;
-                pomoStart.textContent = 'Démarrer';
-            }
-        });
-    });
-    updatePomoDisplay();
-
-    // Vérificateur de mot de passe
-    const passwordInput = document.getElementById('passwordInput');
-    const strengthFill = document.getElementById('strengthFill');
-    const strengthLabel = document.getElementById('strengthLabel');
-
-    function checkStrength(password) {
-        let score = 0;
-        if (password.length >= 8) score++;
-        if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score++;
-        if (/\d/.test(password)) score++;
-        if (/[^A-Za-z0-9]/.test(password)) score++;
-        return score;
-    }
-
-    passwordInput.addEventListener('input', () => {
-        const pwd = passwordInput.value;
-        const score = checkStrength(pwd);
-        let width = (score / 4) * 100;
-        strengthFill.style.width = width + '%';
-        if (score <= 1) {
-            strengthFill.style.background = '#ff4081';
-            strengthLabel.textContent = 'Faible';
-            strengthLabel.style.color = '#ff4081';
-        } else if (score === 2 || score === 3) {
-            strengthFill.style.background = '#ffb74d';
-            strengthLabel.textContent = 'Moyen';
-            strengthLabel.style.color = '#ffb74d';
-        } else {
-            strengthFill.style.background = '#66bb6a';
-            strengthLabel.textContent = 'Fort';
-            strengthLabel.style.color = '#66bb6a';
-        }
-        if (pwd === '') {
-            strengthFill.style.width = '0%';
-            strengthLabel.textContent = 'Entrez un mot de passe';
-            strengthLabel.style.color = '#b388ff';
-        }
-    });
-
-    // QR Code
-    const qrText = document.getElementById('qrText');
-    const qrGenerate = document.getElementById('qrGenerate');
-    const qrImage = document.getElementById('qrImage');
-    qrGenerate.addEventListener('click', () => {
-        const text = qrText.value.trim();
-        if (!text) return;
-        qrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(text)}`;
-        qrImage.style.display = 'block';
-    });
-
 })();
 </script>
 </body>
