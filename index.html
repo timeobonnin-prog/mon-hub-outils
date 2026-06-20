@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hub Complet – Calculatrice, Convertisseur, Chronomètre, Mdp, QR, Partage</title>
+    <title>Hub Complet – Calculatrice, Convertisseur, Chronomètre, Mdp, QR, Partage, Réseau, Texte</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -48,7 +48,7 @@
             background: rgba(20,20,40,0.75); backdrop-filter: blur(25px);
             border-radius: 24px; border: 1px solid rgba(0,229,255,0.25);
             box-shadow: 0 0 40px rgba(0,229,255,0.15);
-            width: 100%; max-width: 520px; padding: 20px; z-index: 1;
+            width: 100%; max-width: 650px; padding: 20px; z-index: 1;
             display: flex; flex-direction: column; gap: 20px; margin: 20px;
         }
         .tab { display: none; animation: fade 0.3s; }
@@ -58,19 +58,20 @@
             to { opacity:1; transform: translateY(0); }
         }
         /* Calculatrice */
-        .calc-display {
-            background: rgba(10,15,25,0.8); border: 1px solid #b388ff;
-            border-radius: 12px; padding: 20px 15px; font-size: 2rem;
-            text-align: right; color: #e0e0ff; min-height: 70px;
-            word-break: break-all; margin-bottom: 15px;
-        }
+        .calc-display { background: rgba(10,15,25,0.8); border: 1px solid #b388ff; border-radius: 12px; padding: 20px 15px; font-size: 2rem; text-align: right; color: #e0e0ff; min-height: 70px; word-break: break-all; margin-bottom: 15px; }
+        .calc-history-toggle { text-align: right; margin-bottom: 5px; }
+        .calc-history-toggle button { background: transparent; border: 1px solid #00e5ff; color: #00e5ff; padding: 5px 12px; border-radius: 12px; font-size: 0.8rem; cursor: pointer; transition: 0.2s; }
+        .calc-history-toggle button:hover { background: #00e5ff; color: #000; }
+        .calc-history { display: none; background: rgba(0,0,0,0.3); border-radius: 10px; padding: 10px; margin-bottom: 15px; max-height: 200px; overflow-y: auto; font-size: 0.9rem; }
+        .calc-history.open { display: block; }
+        .history-item { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #333; cursor: pointer; transition: background 0.2s; }
+        .history-item:hover { background: rgba(0,229,255,0.1); }
+        .history-item .expr { color: #b388ff; }
+        .history-item .res { color: #00e5ff; font-weight: bold; }
+        .clear-history { margin-top: 5px; text-align: right; }
+        .clear-history button { background: #ff4081; border: none; color: white; padding: 4px 10px; border-radius: 8px; cursor: pointer; }
         .keys { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-        .key {
-            background: rgba(255,255,255,0.05); border: 1px solid #00e5ff;
-            color: #00e5ff; padding: 16px 0; border-radius: 12px;
-            font-size: 1.2rem; cursor: pointer; transition: 0.1s;
-            text-align: center; user-select: none; font-weight: bold;
-        }
+        .key { background: rgba(255,255,255,0.05); border: 1px solid #00e5ff; color: #00e5ff; padding: 16px 0; border-radius: 12px; font-size: 1.2rem; cursor: pointer; transition: 0.1s; text-align: center; user-select: none; font-weight: bold; }
         .key:active { background: #00e5ff; color: #000; box-shadow: 0 0 20px #00e5ff; transform: scale(0.95); }
         .key.operator { border-color: #ff4081; color: #ff4081; }
         .key.operator:active { background: #ff4081; color: white; }
@@ -78,48 +79,27 @@
         .key.equals:active { box-shadow: 0 0 30px #00e5ff; }
         .key.clear { border-color: #ff4081; color: #ff4081; }
 
-        /* Convertisseur */
+        /* Convertisseur grand tableau */
         .conv-container { display: flex; flex-direction: column; gap: 15px; }
         .ref-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-        .ref-row input, .ref-row select {
-            background: rgba(255,255,255,0.05); border: 1px solid #b388ff;
-            border-radius: 10px; color: #e0e0ff; padding: 10px 12px;
-            font-size: 1rem; outline: none;
-        }
+        .ref-row input, .ref-row select { background: rgba(255,255,255,0.05); border: 1px solid #b388ff; border-radius: 10px; color: #e0e0ff; padding: 12px 14px; font-size: 1rem; outline: none; }
         .arrow-btns { display: flex; gap: 5px; }
-        .arrow-btn {
-            background: transparent; border: 1px solid #00e5ff; color: #00e5ff;
-            border-radius: 6px; padding: 5px 10px; cursor: pointer;
-            font-size: 1.2rem; transition: 0.2s;
-        }
+        .arrow-btn { background: transparent; border: 1px solid #00e5ff; color: #00e5ff; border-radius: 6px; padding: 8px 14px; cursor: pointer; font-size: 1.3rem; transition: 0.2s; }
         .arrow-btn:active { background: #00e5ff; color: #000; }
-        .conv-table { display: flex; flex-direction: column; gap: 8px; max-height: 300px; overflow-y: auto; }
-        .conv-row {
-            display: flex; justify-content: space-between; align-items: center;
-            background: rgba(255,255,255,0.03); border: 1px solid #333;
-            border-radius: 8px; padding: 10px 12px;
-        }
-        .conv-row .unit-name { color: #b388ff; font-weight: bold; }
-        .conv-row .unit-value { color: #00e5ff; font-weight: bold; }
+        .excel-table { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid #00e5ff55; border-radius: 10px; overflow: hidden; font-size: 1rem; }
+        .excel-header { background: rgba(0,229,255,0.2); padding: 12px; font-weight: bold; color: #00e5ff; text-align: center; border-bottom: 1px solid #00e5ff; }
+        .excel-cell { background: rgba(255,255,255,0.03); padding: 14px 12px; border-bottom: 1px solid #333; display: flex; align-items: center; justify-content: space-between; transition: background 0.2s; cursor: pointer; }
+        .excel-cell:hover { background: rgba(0,229,255,0.08); }
+        .excel-cell:last-child, .excel-cell:nth-last-child(2) { border-bottom: none; }
+        .unit-name { color: #b388ff; font-weight: bold; }
+        .unit-value { color: #00e5ff; font-weight: bold; font-size: 1.1rem; }
+        .copy-hint { font-size: 0.7rem; color: #777; text-align: right; margin-top: 5px; }
 
         /* Chronomètre */
-        .chrono-display {
-            font-size: 3.5rem; font-weight: bold; text-align: center;
-            color: #00e5ff; text-shadow: 0 0 20px #00e5ff;
-            margin: 10px 0; letter-spacing: 3px; cursor: pointer;
-            padding: 10px; border-radius: 12px; transition: 0.2s;
-        }
+        .chrono-display { font-size: 3.5rem; font-weight: bold; text-align: center; color: #00e5ff; text-shadow: 0 0 20px #00e5ff; margin: 10px 0; letter-spacing: 3px; cursor: pointer; padding: 10px; border-radius: 12px; transition: 0.2s; }
         .chrono-display:hover { background: rgba(0,229,255,0.1); }
-        .chrono-display input {
-            background: transparent; border: 1px dashed #00e5ff;
-            color: #00e5ff; font-size: 2.5rem; text-align: center;
-            width: 120px; outline: none; font-family: inherit;
-        }
-        .pomo-btn {
-            background: #00e5ff; color: #0a0a14; border: none;
-            font-weight: bold; padding: 10px 25px; border-radius: 20px;
-            cursor: pointer; transition: 0.2s;
-        }
+        .chrono-display input { background: transparent; border: 1px dashed #00e5ff; color: #00e5ff; font-size: 2.5rem; text-align: center; width: 120px; outline: none; font-family: inherit; }
+        .pomo-btn { background: #00e5ff; color: #0a0a14; border: none; font-weight: bold; padding: 10px 25px; border-radius: 20px; cursor: pointer; transition: 0.2s; }
         .pomo-btn.reset { background: transparent; border: 1px solid #ff4081; color: #ff4081; }
 
         /* Mdp */
@@ -131,31 +111,34 @@
         .qr-container { text-align: center; }
         .qr-container img { background: white; padding: 10px; border-radius: 12px; }
         .qr-actions { display: flex; justify-content: center; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
-        .action-btn {
-            background: rgba(255,255,255,0.05); border: 1px solid #00e5ff;
-            color: #00e5ff; padding: 8px 12px; border-radius: 8px;
-            cursor: pointer; font-size: 0.8rem; transition: 0.2s;
-        }
+        .action-btn { background: rgba(255,255,255,0.05); border: 1px solid #00e5ff; color: #00e5ff; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; transition: 0.2s; }
         .action-btn:hover { background: #00e5ff; color: #000; }
 
         /* Partage */
         .share-section { display: flex; flex-direction: column; gap: 15px; }
-        .share-link-box {
-            display: flex; gap: 5px; align-items: center;
-            background: rgba(255,255,255,0.05); border: 1px solid #b388ff;
-            border-radius: 10px; padding: 10px;
-        }
+        .share-link-box { display: flex; gap: 5px; align-items: center; background: rgba(255,255,255,0.05); border: 1px solid #b388ff; border-radius: 10px; padding: 10px; }
         .share-link-box input { flex:1; background: transparent; border: none; color: #e0e0ff; font-size: 0.9rem; }
         .share-buttons { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
-        .share-icon {
-            background: rgba(255,255,255,0.05); border: 1px solid #b388ff;
-            border-radius: 12px; padding: 10px 15px; color: #b388ff;
-            text-decoration: none; font-size: 0.9rem; display: flex;
-            align-items: center; gap: 6px; transition: 0.2s;
-        }
+        .share-icon { background: rgba(255,255,255,0.05); border: 1px solid #b388ff; border-radius: 12px; padding: 10px 15px; color: #b388ff; text-decoration: none; font-size: 0.9rem; display: flex; align-items: center; gap: 6px; transition: 0.2s; }
         .share-icon:hover { background: #b388ff; color: #0a0a14; box-shadow: 0 0 12px #b388ff; }
         .github-link { text-align: center; margin-top: 10px; }
         .github-link a { color: #00e5ff; text-decoration: none; font-weight: bold; }
+
+        /* Réseau */
+        .network-card { display: flex; flex-direction: column; gap: 15px; }
+        .ip-box { background: rgba(0,229,255,0.1); border: 1px solid #00e5ff; border-radius: 12px; padding: 15px; text-align: center; font-size: 1.5rem; color: #00e5ff; }
+        .capture-preview { text-align: center; }
+        .capture-preview img { max-width: 100%; border-radius: 12px; margin-top: 10px; border: 1px solid #b388ff; }
+
+        /* Texte */
+        .text-tools { display: flex; flex-direction: column; gap: 15px; }
+        .sub-tabs { display: flex; gap: 5px; flex-wrap: wrap; }
+        .sub-tab-btn { background: transparent; border: 1px solid #b388ff; color: #b388ff; padding: 6px 12px; border-radius: 15px; cursor: pointer; font-size: 0.8rem; }
+        .sub-tab-btn.active { background: #b388ff; color: #0a0a14; }
+        .sub-panel { display: none; }
+        .sub-panel.active { display: block; }
+        textarea, input[type="text"] { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid #b388ff; border-radius: 10px; color: #e0e0ff; padding: 12px; font-size: 1rem; outline: none; resize: vertical; }
+        .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
     </style>
 </head>
 <body>
@@ -168,12 +151,23 @@
     <button class="nav-btn" data-tab="pass">🔐 Mdp</button>
     <button class="nav-btn" data-tab="qr">📱 QR</button>
     <button class="nav-btn" data-tab="share">📤 Partager</button>
+    <button class="nav-btn" data-tab="network">📡 Réseau</button>
+    <button class="nav-btn" data-tab="text">🔤 Texte</button>
 </div>
 
 <div class="app">
-    <!-- Calculatrice -->
+    <!-- Calculatrice avec historique -->
     <div class="tab active" id="tab-calc">
         <div class="calc-display" id="calcDisplay">0</div>
+        <div class="calc-history-toggle">
+            <button id="toggleHistory">📋 Historique</button>
+        </div>
+        <div class="calc-history" id="calcHistory">
+            <div id="historyList"></div>
+            <div class="clear-history">
+                <button id="clearHistory">Effacer historique</button>
+            </div>
+        </div>
         <div class="keys">
             <button class="key clear" data-action="clear">AC</button>
             <button class="key" data-action="back">⌫</button>
@@ -198,7 +192,7 @@
         </div>
     </div>
 
-    <!-- Convertisseur -->
+    <!-- Convertisseur grand tableau -->
     <div class="tab" id="tab-conv">
         <div class="conv-container">
             <select id="unitCategory">
@@ -215,7 +209,8 @@
                     <button class="arrow-btn" id="decreaseBtn">▼</button>
                 </div>
             </div>
-            <div class="conv-table" id="convTable"></div>
+            <div class="excel-table" id="excelTable"></div>
+            <div class="copy-hint">Clique sur une valeur pour la copier</div>
         </div>
     </div>
 
@@ -276,6 +271,81 @@
             </div>
         </div>
     </div>
+
+    <!-- Réseau & Capture -->
+    <div class="tab" id="tab-network">
+        <div class="network-card">
+            <h3 style="color:#b388ff;">🌐 Informations réseau</h3>
+            <div class="ip-box" id="ipDisplay">Chargement de l'IP...</div>
+            <button class="action-btn" id="copyIpBtn">📋 Copier l'IP</button>
+            <hr style="border-color:#333;">
+            <h3 style="color:#b388ff;">📸 Capture d'écran</h3>
+            <button class="pomo-btn" id="captureBtn">Prendre une capture</button>
+            <div class="capture-preview" id="capturePreview"></div>
+        </div>
+    </div>
+
+    <!-- Outil Texte (Conversion bases, Chiffrement, Obfuscation) -->
+    <div class="tab" id="tab-text">
+        <div class="text-tools">
+            <div class="sub-tabs">
+                <button class="sub-tab-btn active" data-sub="bases">🔢 Conversion bases</button>
+                <button class="sub-tab-btn" data-sub="crypto">🔐 Chiffrement</button>
+                <button class="sub-tab-btn" data-sub="obfus">🔄 Obfuscation</button>
+            </div>
+
+            <!-- Conversion de bases -->
+            <div class="sub-panel active" id="sub-bases">
+                <textarea id="baseInput" placeholder="Texte ou nombres..."></textarea>
+                <div class="row">
+                    <select id="baseFrom">
+                        <option value="auto">Détection auto.</option>
+                        <option value="text">Texte</option>
+                        <option value="dec">Décimal</option>
+                        <option value="hex">Hexadécimal</option>
+                        <option value="oct">Octal</option>
+                        <option value="bin">Binaire</option>
+                    </select>
+                    <span style="color:#00e5ff;">→</span>
+                    <select id="baseTo">
+                        <option value="text">Texte</option>
+                        <option value="dec">Décimal</option>
+                        <option value="hex" selected>Hexadécimal</option>
+                        <option value="oct">Octal</option>
+                        <option value="bin">Binaire</option>
+                    </select>
+                    <button class="action-btn" id="baseConvert">Convertir</button>
+                </div>
+                <textarea id="baseOutput" placeholder="Sortie..." readonly></textarea>
+            </div>
+
+            <!-- Chiffrement -->
+            <div class="sub-panel" id="sub-crypto">
+                <textarea id="cryptoInput" placeholder="Texte à chiffrer / déchiffrer"></textarea>
+                <div class="row">
+                    <select id="cryptoMethod">
+                        <option value="caesar">César</option>
+                        <option value="rot13">ROT13</option>
+                        <option value="vigenere">Vigenère</option>
+                    </select>
+                    <input type="text" id="cryptoKey" placeholder="Clé / Décalage" value="3" style="width:100px;">
+                    <button class="action-btn" id="cryptoEncrypt">Chiffrer</button>
+                    <button class="action-btn" id="cryptoDecrypt">Déchiffrer</button>
+                </div>
+                <textarea id="cryptoOutput" placeholder="Résultat..." readonly></textarea>
+            </div>
+
+            <!-- Obfuscation -->
+            <div class="sub-panel" id="sub-obfus">
+                <textarea id="obfusInput" placeholder="Texte à obfusquer"></textarea>
+                <div class="row">
+                    <button class="pomo-btn" id="obfusRotate">Rotation 180°</button>
+                    <button class="pomo-btn reset" id="obfusShuffle">Retournement aléatoire</button>
+                </div>
+                <textarea id="obfusOutput" placeholder="Résultat..." readonly></textarea>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -291,7 +361,7 @@
         document.getElementById('particles').appendChild(p);
     }
 
-    // Navigation
+    // Navigation principale
     document.querySelectorAll('.nav-btn[data-tab]').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.nav-btn[data-tab]').forEach(b => b.classList.remove('active'));
@@ -301,10 +371,56 @@
         });
     });
 
-    // Calculatrice
+    // ========== CALCULATRICE + HISTORIQUE ==========
     let expression = '';
-    const display = document.getElementById('calcDisplay');
-    function updateCalcDisplay() { display.textContent = expression || '0'; }
+    const calcDisplay = document.getElementById('calcDisplay');
+    const historyListEl = document.getElementById('historyList');
+    const calcHistoryEl = document.getElementById('calcHistory');
+    const toggleHistoryBtn = document.getElementById('toggleHistory');
+    const clearHistoryBtn = document.getElementById('clearHistory');
+
+    let history = JSON.parse(localStorage.getItem('calcHistory')) || [];
+
+    function saveHistory() { localStorage.setItem('calcHistory', JSON.stringify(history)); }
+    function renderHistory() {
+        historyListEl.innerHTML = '';
+        if (history.length === 0) {
+            historyListEl.innerHTML = '<div style="color:#888;">Aucun calcul</div>';
+            return;
+        }
+        [...history].reverse().forEach(item => {
+            const row = document.createElement('div');
+            row.className = 'history-item';
+            row.innerHTML = `<span class="expr">${item.expr}</span> <span class="res">= ${item.res}</span>`;
+            row.addEventListener('click', () => {
+                expression = item.expr;
+                updateCalcDisplay();
+                calcHistoryEl.classList.remove('open');
+            });
+            historyListEl.appendChild(row);
+        });
+    }
+
+    function addToHistory(expr, res) {
+        if (history.length > 0 && history[history.length-1].expr === expr && history[history.length-1].res === res) return;
+        history.push({ expr, res });
+        if (history.length > 20) history.shift();
+        saveHistory();
+        renderHistory();
+    }
+
+    clearHistoryBtn.addEventListener('click', () => {
+        history = [];
+        saveHistory();
+        renderHistory();
+    });
+
+    toggleHistoryBtn.addEventListener('click', () => {
+        calcHistoryEl.classList.toggle('open');
+    });
+
+    function updateCalcDisplay() { calcDisplay.textContent = expression || '0'; }
+
     document.querySelector('.keys').addEventListener('click', (e) => {
         const btn = e.target.closest('button');
         if (!btn) return;
@@ -315,71 +431,65 @@
             try {
                 let ex = expression.replace(/×/g,'*').replace(/÷/g,'/').replace(/−/g,'-');
                 ex = ex.replace(/π/g, Math.PI).replace(/√/g, 'Math.sqrt');
-                expression = Function('"use strict"; return ('+ex+')')() .toString();
+                const result = Function('"use strict"; return ('+ex+')')();
+                addToHistory(expression, result);
+                expression = result.toString();
                 updateCalcDisplay();
-            } catch { display.textContent = 'Erreur'; expression = ''; }
+            } catch { calcDisplay.textContent = 'Erreur'; expression = ''; }
         } else if (action === 'sqrt') { expression += '√('; updateCalcDisplay(); }
         else if (action === 'pi') { expression += 'π'; updateCalcDisplay(); }
         else { expression += action; updateCalcDisplay(); }
     });
 
-    // Convertisseur
+    renderHistory();
+
+    // ========== CONVERTISSEUR UNITÉS ==========
     const unitData = {
-        volume: {
-            units: { 'litre (L)':1, 'millilitre (mL)':1000, 'mètre cube (m³)':0.001, 'gallon US':0.264172, 'pinte US':2.11338, 'cuillère à soupe':66.6667 },
-            base: 'litre (L)'
-        },
-        masse: {
-            units: { 'kilogramme (kg)':1, 'gramme (g)':1000, 'milligramme (mg)':1e6, 'livre (lb)':2.20462, 'once (oz)':35.274 },
-            base: 'kilogramme (kg)'
-        },
-        longueur: {
-            units: { 'mètre (m)':1, 'kilomètre (km)':0.001, 'centimètre (cm)':100, 'millimètre (mm)':1000, 'pied (ft)':3.28084, 'pouce (in)':39.3701, 'mile':0.000621371 },
-            base: 'mètre (m)'
-        },
-        température: {
-            units: { 'Celsius': 'c', 'Fahrenheit': 'f', 'Kelvin': 'k' },
-            base: 'Celsius'
-        }
+        volume: { units: { 'litre (L)':1, 'millilitre (mL)':1000, 'mètre cube (m³)':0.001, 'gallon US':0.264172, 'pinte US':2.11338, 'cuillère à soupe':66.6667 }, base: 'litre (L)' },
+        masse: { units: { 'kilogramme (kg)':1, 'gramme (g)':1000, 'milligramme (mg)':1e6, 'livre (lb)':2.20462, 'once (oz)':35.274 }, base: 'kilogramme (kg)' },
+        longueur: { units: { 'mètre (m)':1, 'kilomètre (km)':0.001, 'centimètre (cm)':100, 'millimètre (mm)':1000, 'pied (ft)':3.28084, 'pouce (in)':39.3701, 'mile':0.000621371 }, base: 'mètre (m)' },
+        température: { units: { 'Celsius': 'c', 'Fahrenheit': 'f', 'Kelvin': 'k' }, base: 'Celsius' }
     };
     const categorySelect = document.getElementById('unitCategory');
     const refValueInput = document.getElementById('refValue');
     const refUnitSelect = document.getElementById('refUnit');
-    const convTable = document.getElementById('convTable');
+    const excelTable = document.getElementById('excelTable');
 
     function populateUnits() {
         const cat = categorySelect.value;
         refUnitSelect.innerHTML = '';
-        Object.keys(unitData[cat].units).forEach(u => {
-            refUnitSelect.innerHTML += `<option value="${u}">${u}</option>`;
-        });
+        Object.keys(unitData[cat].units).forEach(u => refUnitSelect.innerHTML += `<option value="${u}">${u}</option>`);
         refUnitSelect.value = unitData[cat].base;
         updateTable();
     }
     function updateTable() {
         const cat = categorySelect.value;
         const value = parseFloat(refValueInput.value);
-        if (isNaN(value)) { convTable.innerHTML = '<div style="color:#ff4081;">Valeur invalide</div>'; return; }
+        if (isNaN(value)) { excelTable.innerHTML = '<div style="padding:20px; color:#ff4081;">Valeur invalide</div>'; return; }
         const refUnit = refUnitSelect.value;
         const units = unitData[cat].units;
-        let html = '';
+        let html = `<div class="excel-header">Unité</div><div class="excel-header">Valeur</div>`;
         for (let unit in units) {
             let converted;
             if (cat === 'température') {
-                let celsius;
-                if (refUnit === 'Celsius') celsius = value;
-                else if (refUnit === 'Fahrenheit') celsius = (value-32)*5/9;
-                else celsius = value-273.15;
+                let celsius = refUnit === 'Celsius' ? value : refUnit === 'Fahrenheit' ? (value-32)*5/9 : value-273.15;
                 if (unit === 'Celsius') converted = celsius;
                 else if (unit === 'Fahrenheit') converted = celsius*9/5+32;
                 else converted = celsius+273.15;
             } else {
-                const base = value / units[refUnit];
-                converted = base * units[unit];
+                converted = (value / units[refUnit]) * units[unit];
             }
-            html += `<div class="conv-row"><span class="unit-name">${unit}</span><span class="unit-value">${converted.toFixed(4)}</span></div>`;
+            html += `<div class="excel-cell"><span class="unit-name">${unit}</span></div>
+                     <div class="excel-cell" data-copy="${converted.toFixed(4)}"><span class="unit-value">${converted.toFixed(4)}</span></div>`;
         }
-        convTable.innerHTML = html;
+        excelTable.innerHTML = html;
+        document.querySelectorAll('.excel-cell[data-copy]').forEach(cell => {
+            cell.addEventListener('click', () => {
+                navigator.clipboard.writeText(cell.dataset.copy);
+                cell.style.background = 'rgba(0,229,255,0.2)';
+                setTimeout(() => cell.style.background = '', 200);
+            });
+        });
     }
     categorySelect.addEventListener('change', populateUnits);
     refValueInput.addEventListener('input', updateTable);
@@ -388,96 +498,48 @@
     document.getElementById('decreaseBtn').addEventListener('click', () => { refValueInput.value = (parseFloat(refValueInput.value)||0)-1; updateTable(); });
     populateUnits();
 
-    // Chronomètre
+    // ========== CHRONOMÈTRE ==========
     let chronoInterval, chronoRemaining = 0, chronoRunning = false;
     const chronoTimeSpan = document.getElementById('chronoTime');
     const chronoInput = document.getElementById('chronoInput');
     const chronoStartBtn = document.getElementById('chronoStart');
     const chronoResetBtn = document.getElementById('chronoReset');
-
-    function formatChrono(seconds) {
-        const m = Math.floor(seconds / 60);
-        const s = seconds % 60;
-        return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-    }
-
-    function updateChronoDisplay() {
-        chronoTimeSpan.textContent = formatChrono(chronoRemaining);
-    }
-
-    function stopChrono() {
-        clearInterval(chronoInterval);
-        chronoRunning = false;
-        chronoStartBtn.textContent = 'Démarrer';
-    }
-
+    function formatChrono(s) { return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`; }
+    function updateChronoDisplay() { chronoTimeSpan.textContent = formatChrono(chronoRemaining); }
+    function stopChrono() { clearInterval(chronoInterval); chronoRunning = false; chronoStartBtn.textContent = 'Démarrer'; }
     chronoTimeSpan.addEventListener('click', () => {
-        // Passe en mode édition
         chronoTimeSpan.style.display = 'none';
         chronoInput.style.display = 'inline-block';
-        // Pré-remplir avec le temps actuel
-        const m = Math.floor(chronoRemaining / 60);
-        const s = chronoRemaining % 60;
-        chronoInput.value = `${m}.${String(s).padStart(2, '0')}`;
+        chronoInput.value = `${Math.floor(chronoRemaining/60)}.${String(chronoRemaining%60).padStart(2,'0')}`;
         chronoInput.focus();
     });
-
-    chronoInput.addEventListener('blur', () => {
-        applyCustomTime();
-    });
-    chronoInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            applyCustomTime();
-            chronoInput.blur();
-        }
-    });
-
+    chronoInput.addEventListener('blur', applyCustomTime);
+    chronoInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') { applyCustomTime(); chronoInput.blur(); } });
     function applyCustomTime() {
         const raw = chronoInput.value.trim();
-        // Format accepté : 3.12, 0.45, 12, etc.
-        let minutes = 0, seconds = 0;
-        if (raw.includes('.')) {
-            const parts = raw.split('.');
-            minutes = parseInt(parts[0]) || 0;
-            seconds = parseInt(parts[1]) || 0;
-        } else {
-            minutes = parseInt(raw) || 0;
-        }
-        chronoRemaining = minutes * 60 + seconds;
-        if (chronoRemaining < 0) chronoRemaining = 0;
+        let m = 0, s = 0;
+        if (raw.includes('.')) { const [mm, ss] = raw.split('.'); m = parseInt(mm)||0; s = parseInt(ss)||0; }
+        else { m = parseInt(raw)||0; }
+        chronoRemaining = m*60 + s;
         updateChronoDisplay();
         chronoTimeSpan.style.display = '';
         chronoInput.style.display = 'none';
-        if (chronoRunning) stopChrono(); // on arrête si en cours
+        if (chronoRunning) stopChrono();
     }
-
     chronoStartBtn.addEventListener('click', () => {
-        if (chronoRunning) {
-            stopChrono();
-        } else {
-            if (chronoRemaining <= 0) return;
+        if (chronoRunning) stopChrono();
+        else if (chronoRemaining > 0) {
             chronoInterval = setInterval(() => {
-                if (chronoRemaining > 0) {
-                    chronoRemaining--;
-                    updateChronoDisplay();
-                } else {
-                    stopChrono();
-                    alert('⏰ Temps écoulé !');
-                }
+                if (chronoRemaining > 0) { chronoRemaining--; updateChronoDisplay(); }
+                else { stopChrono(); alert('⏰ Temps écoulé !'); }
             }, 1000);
             chronoRunning = true;
             chronoStartBtn.textContent = 'Pause';
         }
     });
+    chronoResetBtn.addEventListener('click', () => { stopChrono(); chronoRemaining = 0; updateChronoDisplay(); chronoStartBtn.textContent = 'Démarrer'; });
 
-    chronoResetBtn.addEventListener('click', () => {
-        stopChrono();
-        chronoRemaining = 0;
-        updateChronoDisplay();
-        chronoStartBtn.textContent = 'Démarrer';
-    });
-
-    // Vérificateur MDP
+    // ========== VÉRIFICATEUR MDP ==========
     const passwordInput = document.getElementById('passwordInput');
     const strengthFill = document.getElementById('strengthFill');
     const strengthLabel = document.getElementById('strengthLabel');
@@ -489,71 +551,218 @@
         if (/\d/.test(pwd)) score++;
         if (/[^A-Za-z0-9]/.test(pwd)) score++;
         strengthFill.style.width = (score/4)*100 + '%';
-        if (!pwd) {
-            strengthFill.style.width = '0%'; strengthLabel.textContent = 'Entrez un mot de passe'; strengthLabel.style.color = '#b388ff';
-        } else if (score <= 1) { strengthFill.style.background = '#ff4081'; strengthLabel.textContent = 'Faible'; strengthLabel.style.color = '#ff4081'; }
+        if (!pwd) { strengthFill.style.width = '0%'; strengthLabel.textContent = 'Entrez un mot de passe'; strengthLabel.style.color = '#b388ff'; }
+        else if (score <= 1) { strengthFill.style.background = '#ff4081'; strengthLabel.textContent = 'Faible'; strengthLabel.style.color = '#ff4081'; }
         else if (score <= 3) { strengthFill.style.background = '#ffb74d'; strengthLabel.textContent = 'Moyen'; strengthLabel.style.color = '#ffb74d'; }
         else { strengthFill.style.background = '#66bb6a'; strengthLabel.textContent = 'Fort'; strengthLabel.style.color = '#66bb6a'; }
     });
 
-    // QR Code
+    // ========== QR CODE ==========
     const qrText = document.getElementById('qrText');
     const qrImage = document.getElementById('qrImage');
     const qrActions = document.getElementById('qrActions');
     document.getElementById('qrGenerate').addEventListener('click', () => {
         const text = qrText.value.trim();
         if (!text) return;
-        const url = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(text)}`;
-        qrImage.src = url;
+        qrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(text)}`;
         qrImage.style.display = 'block';
         qrActions.style.display = 'flex';
     });
     document.getElementById('qrDownload').addEventListener('click', async () => {
         if (!qrImage.src) return;
-        try {
-            const response = await fetch(qrImage.src);
-            const blob = await response.blob();
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url; a.download = 'qr-code.png'; a.click();
-            URL.revokeObjectURL(url);
-        } catch (e) { alert('Erreur lors du téléchargement'); }
+        const blob = await fetch(qrImage.src).then(r => r.blob());
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob); a.download = 'qr-code.png'; a.click();
     });
     document.getElementById('qrCopy').addEventListener('click', async () => {
-        try {
-            const response = await fetch(qrImage.src);
-            const blob = await response.blob();
-            await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-            alert('Image copiée dans le presse-papier');
-        } catch (e) { alert('Impossible de copier l\'image'); }
+        const blob = await fetch(qrImage.src).then(r => r.blob());
+        await navigator.clipboard.write([new ClipboardItem({'image/png': blob})]);
+        alert('Image copiée');
     });
     document.getElementById('qrShare').addEventListener('click', async () => {
         if (navigator.share) {
-            try {
-                const response = await fetch(qrImage.src);
-                const blob = await response.blob();
-                const file = new File([blob], 'qr-code.png', { type: 'image/png' });
-                await navigator.share({
-                    title: 'QR Code',
-                    files: [file]
-                });
-            } catch (e) { alert('Partage impossible'); }
-        } else {
-            alert('Partage non supporté sur ce navigateur. Téléchargez l\'image puis partagez-la.');
-        }
+            const blob = await fetch(qrImage.src).then(r => r.blob());
+            await navigator.share({ files: [new File([blob], 'qr-code.png', {type: 'image/png'})] });
+        } else alert('Partage non supporté');
     });
 
-    // Partage du site
+    // ========== PARTAGE ==========
     const siteUrl = 'https://timeobonnin-prog.github.io/mon-hub-outils/';
     document.getElementById('siteUrl').value = siteUrl;
-    document.getElementById('copySiteUrl').addEventListener('click', () => {
-        navigator.clipboard.writeText(siteUrl);
-        alert('Lien copié !');
-    });
+    document.getElementById('copySiteUrl').addEventListener('click', () => { navigator.clipboard.writeText(siteUrl); alert('Lien copié'); });
     document.getElementById('shareWhatsApp').href = `https://wa.me/?text=${encodeURIComponent('Découvre ce super outil : ' + siteUrl)}`;
     document.getElementById('shareFacebook').href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(siteUrl)}`;
     document.getElementById('shareTwitter').href = `https://twitter.com/intent/tweet?text=${encodeURIComponent('Super hub d\'outils !')}&url=${encodeURIComponent(siteUrl)}`;
     document.getElementById('shareMail').href = `mailto:?subject=Outil pratique&body=Salut,%0D%0AVoici un lien vers un hub d'outils : ${encodeURIComponent(siteUrl)}`;
+
+    // ========== RÉSEAU & CAPTURE ==========
+    const ipDisplay = document.getElementById('ipDisplay');
+    fetch('https://api.ipify.org?format=json')
+        .then(r => r.json())
+        .then(data => { ipDisplay.textContent = data.ip; })
+        .catch(() => { ipDisplay.textContent = 'IP indisponible'; });
+    document.getElementById('copyIpBtn').addEventListener('click', () => { navigator.clipboard.writeText(ipDisplay.textContent); alert('IP copiée'); });
+    document.getElementById('captureBtn').addEventListener('click', async () => {
+        try {
+            const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+            const video = document.createElement('video');
+            video.srcObject = stream;
+            video.play();
+            video.onloadedmetadata = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                canvas.getContext('2d').drawImage(video, 0, 0);
+                stream.getTracks().forEach(track => track.stop());
+                const img = document.createElement('img');
+                img.src = canvas.toDataURL('image/png');
+                const preview = document.getElementById('capturePreview');
+                preview.innerHTML = '';
+                preview.appendChild(img);
+                const downloadBtn = document.createElement('button');
+                downloadBtn.className = 'action-btn';
+                downloadBtn.textContent = '💾 Télécharger';
+                downloadBtn.onclick = () => {
+                    const a = document.createElement('a');
+                    a.href = canvas.toDataURL('image/png');
+                    a.download = 'capture.png';
+                    a.click();
+                };
+                preview.appendChild(downloadBtn);
+            };
+        } catch (err) { alert('Impossible de capturer l\'écran : ' + err.message); }
+    });
+
+    // ========== OUTIL TEXTE ==========
+    // Sous-onglets
+    document.querySelectorAll('.sub-tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.sub-tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.querySelectorAll('.sub-panel').forEach(p => p.classList.remove('active'));
+            document.getElementById('sub-' + btn.dataset.sub).classList.add('active');
+        });
+    });
+
+    // --- Conversion de bases ---
+    function detectType(input) {
+        if (/^[01]+$/.test(input)) return 'bin';
+        if (/^[0-7]+$/.test(input)) return 'oct';
+        if (/^[0-9]+$/.test(input)) return 'dec';
+        if (/^[0-9A-Fa-f]+$/.test(input)) return 'hex';
+        return 'text';
+    }
+    function convertBase(input, from, to) {
+        if (input === '') return '';
+        // Si texte, on travaille avec les codes ASCII
+        if (from === 'text') {
+            let nums = input.split('').map(c => c.charCodeAt(0));
+            return convertFromDecArray(nums, to);
+        }
+        let decimalArray;
+        if (from === 'auto') from = detectType(input);
+        switch(from) {
+            case 'bin': decimalArray = input.split(' ').map(b => parseInt(b, 2)); break;
+            case 'oct': decimalArray = input.split(' ').map(o => parseInt(o, 8)); break;
+            case 'dec': decimalArray = input.split(' ').map(d => parseInt(d, 10)); break;
+            case 'hex': decimalArray = input.split(' ').map(h => parseInt(h, 16)); break;
+            default: return '';
+        }
+        return convertFromDecArray(decimalArray, to);
+    }
+    function convertFromDecArray(nums, to) {
+        switch(to) {
+            case 'text': return nums.map(n => String.fromCharCode(n)).join('');
+            case 'bin': return nums.map(n => n.toString(2)).join(' ');
+            case 'oct': return nums.map(n => n.toString(8)).join(' ');
+            case 'dec': return nums.join(' ');
+            case 'hex': return nums.map(n => n.toString(16).toUpperCase()).join(' ');
+            default: return '';
+        }
+    }
+
+    document.getElementById('baseConvert').addEventListener('click', () => {
+        const input = document.getElementById('baseInput').value.trim();
+        const from = document.getElementById('baseFrom').value;
+        const to = document.getElementById('baseTo').value;
+        const output = convertBase(input, from, to);
+        document.getElementById('baseOutput').value = output;
+    });
+
+    // --- Chiffrement ---
+    function caesarShift(text, shift, decrypt = false) {
+        shift = shift % 26;
+        if (decrypt) shift = (26 - shift) % 26;
+        return text.replace(/[a-zA-Z]/g, c => {
+            const base = c >= 'a' ? 97 : 65;
+            return String.fromCharCode((c.charCodeAt(0) - base + shift) % 26 + base);
+        });
+    }
+    function rot13(text) { return caesarShift(text, 13); }
+    function vigenere(text, key, decrypt = false) {
+        key = key.toLowerCase().replace(/[^a-z]/g, '');
+        if (!key) return text;
+        let j = 0;
+        return text.replace(/[a-zA-Z]/g, c => {
+            const isUpper = c === c.toUpperCase();
+            const base = isUpper ? 65 : 97;
+            const shift = key.charCodeAt(j % key.length) - 97;
+            const dShift = decrypt ? (26 - shift) % 26 : shift;
+            const newChar = (c.charCodeAt(0) - base + dShift) % 26 + base;
+            j++;
+            return String.fromCharCode(newChar);
+        });
+    }
+
+    function applyCrypto(decrypt = false) {
+        const text = document.getElementById('cryptoInput').value;
+        const method = document.getElementById('cryptoMethod').value;
+        const key = document.getElementById('cryptoKey').value;
+        let result = '';
+        switch(method) {
+            case 'caesar':
+                result = caesarShift(text, parseInt(key)||0, decrypt);
+                break;
+            case 'rot13':
+                result = rot13(text); // ROT13 est symétrique
+                break;
+            case 'vigenere':
+                result = vigenere(text, key, decrypt);
+                break;
+        }
+        document.getElementById('cryptoOutput').value = result;
+    }
+    document.getElementById('cryptoEncrypt').addEventListener('click', () => applyCrypto(false));
+    document.getElementById('cryptoDecrypt').addEventListener('click', () => applyCrypto(true));
+
+    // --- Obfuscation ---
+    const rotateMap = {
+        'a':'ɐ','b':'q','c':'ɔ','d':'p','e':'ǝ','f':'ɟ','g':'ƃ','h':'ɥ','i':'ᴉ','j':'ɾ',
+        'k':'ʞ','l':'l','m':'ɯ','n':'u','o':'o','p':'d','q':'b','r':'ɹ','s':'s','t':'ʇ',
+        'u':'n','v':'ʌ','w':'ʍ','x':'x','y':'ʎ','z':'z',
+        'A':'∀','B':'𐐒','C':'Ɔ','D':'ᗡ','E':'Ǝ','F':'Ⅎ','G':'⅁','H':'H','I':'I','J':'ſ',
+        'K':'⋊','L':'˥','M':'W','N':'N','O':'O','P':'Ԁ','Q':'Ό','R':'ᴚ','S':'S','T':'⊥',
+        'U':'∩','V':'Λ','W':'M','X':'X','Y':'⅄','Z':'Z',
+        '0':'0','1':'Ɩ','2':'ᄅ','3':'Ɛ','4':'ㄣ','5':'ϛ','6':'9','7':'ㄥ','8':'8','9':'6',
+        '.':'˙',',':'\'','?':'¿','!':'¡','"':'„','\'':',','(':')(',')':'('
+    };
+    function rotate180(text) {
+        return text.split('').map(c => rotateMap[c] || c).reverse().join('');
+    }
+    function shuffleText(text) {
+        const arr = text.split('');
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr.join('');
+    }
+    document.getElementById('obfusRotate').addEventListener('click', () => {
+        document.getElementById('obfusOutput').value = rotate180(document.getElementById('obfusInput').value);
+    });
+    document.getElementById('obfusShuffle').addEventListener('click', () => {
+        document.getElementById('obfusOutput').value = shuffleText(document.getElementById('obfusInput').value);
+    });
 
 })();
 </script>
