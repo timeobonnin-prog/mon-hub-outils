@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hub Complet – Calculatrice, Convertisseur, Chronomètre, Mdp, QR, Partage, Réseau, Texte</title>
+    <title>Hub Complet – Speed Test intégré</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -58,32 +58,17 @@
             to { opacity:1; transform: translateY(0); }
         }
         /* Styles communs */
-        .card {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid #b388ff;
-            border-radius: 12px;
-            padding: 12px;
-            margin-bottom: 10px;
-        }
+        .card { background: rgba(255,255,255,0.03); border: 1px solid #b388ff; border-radius: 12px; padding: 12px; margin-bottom: 10px; }
         .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
         input, select, textarea {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid #b388ff;
-            border-radius: 10px;
-            color: #e0e0ff;
-            padding: 10px 12px;
-            font-size: 1rem;
-            outline: none;
+            background: rgba(255,255,255,0.05); border: 1px solid #b388ff;
+            border-radius: 10px; color: #e0e0ff; padding: 10px 12px;
+            font-size: 1rem; outline: none;
         }
         .action-btn {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid #00e5ff;
-            color: #00e5ff;
-            padding: 8px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            transition: 0.2s;
+            background: rgba(255,255,255,0.05); border: 1px solid #00e5ff;
+            color: #00e5ff; padding: 8px 16px; border-radius: 8px;
+            cursor: pointer; font-size: 0.8rem; transition: 0.2s;
         }
         .action-btn:hover { background: #00e5ff; color: #000; }
         .pomo-btn { background: #00e5ff; color: #0a0a14; border: none; font-weight: bold; padding: 10px 25px; border-radius: 20px; cursor: pointer; }
@@ -134,44 +119,50 @@
         .sub-panel { display: none; }
         .sub-panel.active { display: block; }
 
-        /* Réseau */
-        .network-card { display: flex; flex-direction: column; gap: 15px; }
-        .ip-box { background: rgba(0,229,255,0.1); border: 1px solid #00e5ff; border-radius: 12px; padding: 15px; text-align: center; font-size: 1.5rem; color: #00e5ff; }
-        .result-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
+        /* Speed Test */
+        .speed-test-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
         }
-        .result-block {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid #b388ff;
-            border-radius: 12px;
-            padding: 10px;
+        .gauge {
+            position: relative;
+            width: 200px;
+            height: 200px;
         }
-        .result-block h4 {
+        .gauge-circle {
+            transform: rotate(-90deg);
+            width: 200px;
+            height: 200px;
+        }
+        .gauge-bg {
+            fill: none;
+            stroke: #333;
+            stroke-width: 12;
+        }
+        .gauge-fill {
+            fill: none;
+            stroke: #00e5ff;
+            stroke-width: 12;
+            stroke-dasharray: 565.48; /* 2 * PI * 90 */
+            stroke-dashoffset: 565.48;
+            transition: stroke-dashoffset 0.2s;
+        }
+        .gauge-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2rem;
+            font-weight: bold;
+            color: #00e5ff;
+        }
+        .speed-info {
+            text-align: center;
+            font-size: 1.2rem;
             color: #b388ff;
-            margin-bottom: 6px;
-            font-size: 0.9rem;
         }
-        .result-block pre {
-            color: #e0e0ff;
-            font-size: 0.8rem;
-            white-space: pre-wrap;
-            word-break: break-all;
-            max-height: 150px;
-            overflow-y: auto;
-        }
-        .loader {
-            border: 2px solid #00e5ff;
-            border-top: 2px solid transparent;
-            border-radius: 50%;
-            width: 16px;
-            height: 16px;
-            animation: spin 0.8s linear infinite;
-            display: inline-block;
-            vertical-align: middle;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
@@ -184,13 +175,12 @@
     <button class="nav-btn" data-tab="pass">🔐 Mdp</button>
     <button class="nav-btn" data-tab="qr">📱 QR</button>
     <button class="nav-btn" data-tab="share">📤 Partager</button>
-    <button class="nav-btn" data-tab="network">📡 Réseau</button>
+    <button class="nav-btn" data-tab="speed">⚡ Speed</button>
     <button class="nav-btn" data-tab="text">🔤 Texte</button>
 </div>
 
 <div class="app">
-    <!-- Tous les onglets précédents (identiques, je les mets en entier pour le fichier final) -->
-
+    <!-- Tous les onglets précédents (identiques) -->
     <!-- Calculatrice avec historique -->
     <div class="tab active" id="tab-calc">
         <div class="calc-display" id="calcDisplay">0</div>
@@ -307,27 +297,19 @@
         </div>
     </div>
 
-    <!-- Onglet Réseau enrichi (avec Speed Test) -->
-    <div class="tab" id="tab-network">
-        <div class="network-card">
-            <!-- Mon IP publique -->
-            <div class="ip-box" id="ipDisplay">Chargement de votre IP...</div>
-            <button class="action-btn" id="copyIpBtn">📋 Copier mon IP</button>
-
-            <h3 style="color:#b388ff;">🔍 Analyse de domaine / IP</h3>
-            <div class="row">
-                <input type="text" id="targetInput" placeholder="exemple.com ou 1.2.3.4" style="flex:1;">
-                <button class="pomo-btn" id="analyzeBtn">Lancer l'analyse complète</button>
+    <!-- Onglet Speed Test simplifié -->
+    <div class="tab" id="tab-speed">
+        <div class="speed-test-container">
+            <h3 style="color:#b388ff;">⚡ Test de vitesse Internet</h3>
+            <div class="gauge" id="gaugeContainer">
+                <svg class="gauge-circle" viewBox="0 0 200 200">
+                    <circle class="gauge-bg" cx="100" cy="100" r="90"></circle>
+                    <circle class="gauge-fill" id="gaugeFill" cx="100" cy="100" r="90"></circle>
+                </svg>
+                <div class="gauge-text" id="gaugeText">0 Mbps</div>
             </div>
-
-            <!-- Résultats -->
-            <div id="resultsContainer" style="margin-top:15px;"></div>
-
-            <!-- Capture d'écran (gardée) -->
-            <hr style="border-color:#333;">
-            <h3 style="color:#b388ff;">📸 Capture d'écran</h3>
-            <button class="pomo-btn" id="captureBtn">Prendre une capture</button>
-            <div class="capture-preview" id="capturePreview"></div>
+            <button class="pomo-btn" id="startSpeedTest">Démarrer le test (20s)</button>
+            <div class="speed-info" id="speedInfo"></div>
         </div>
     </div>
 
@@ -410,7 +392,8 @@
             document.querySelectorAll('.nav-btn[data-tab]').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+            const target = document.getElementById('tab-' + btn.dataset.tab);
+            if (target) target.classList.add('active');
         });
     });
 
@@ -729,211 +712,90 @@
         document.getElementById('obfusOutput').value = shuffleText(document.getElementById('obfusInput').value);
     });
 
-    // ========== RÉSEAU AVANCÉ (AVEC SPEED TEST) ==========
-    const ipDisplay = document.getElementById('ipDisplay');
-    const targetInput = document.getElementById('targetInput');
-    const analyzeBtn = document.getElementById('analyzeBtn');
-    const resultsContainer = document.getElementById('resultsContainer');
+    // ========== SPEED TEST (NOUVEAU) ==========
+    const gaugeFill = document.getElementById('gaugeFill');
+    const gaugeText = document.getElementById('gaugeText');
+    const speedInfo = document.getElementById('speedInfo');
+    const startBtn = document.getElementById('startSpeedTest');
+    const circumference = 2 * Math.PI * 90; // environ 565.48
 
-    fetch('https://api.ipify.org?format=json')
-        .then(r => r.json())
-        .then(data => { ipDisplay.textContent = 'Votre IP : ' + data.ip; })
-        .catch(() => { ipDisplay.textContent = 'IP indisponible'; });
-    document.getElementById('copyIpBtn').addEventListener('click', () => {
-        const ip = ipDisplay.textContent.replace('Votre IP : ', '');
-        navigator.clipboard.writeText(ip);
-        alert('IP copiée');
-    });
+    let testRunning = false;
+    let downloadSpeeds = [];
 
-    analyzeBtn.addEventListener('click', async () => {
-        const target = targetInput.value.trim();
-        if (!target) return alert('Veuillez entrer un domaine ou une IP');
-        resultsContainer.innerHTML = '<div style="text-align:center; padding:20px;"><span class="loader"></span> Analyse en cours...</div>';
-
-        const results = {};
-        const promises = [];
-
-        // 1. Ping
-        promises.push(measurePing(target).then(latency => {
-            results.ping = latency ? `${latency} ms (moyenne sur 3 requêtes)` : 'Échec';
-        }).catch(() => results.ping = 'Erreur'));
-
-        // 2. DNS Lookup
-        promises.push(dnsLookup(target).then(dns => {
-            results.dns = dns || 'Aucun enregistrement trouvé';
-        }).catch(() => results.dns = 'Erreur'));
-
-        // 3. Reverse DNS
-        promises.push(reverseDns(target).then(rdns => {
-            results.rdns = rdns || 'Aucun PTR trouvé';
-        }).catch(() => results.rdns = 'Erreur'));
-
-        // 4. Whois
-        promises.push(whoisLookup(target).then(whois => {
-            results.whois = whois || 'Données whois indisponibles';
-        }).catch(() => results.whois = 'Erreur'));
-
-        // 5. Âge du domaine
-        promises.push(domainAge(target).then(age => {
-            results.age = age || 'Impossible de déterminer l\'âge';
-        }).catch(() => results.age = 'Erreur'));
-
-        // 6. Scan de ports
-        promises.push(portScan(target).then(scan => {
-            results.ports = scan || 'Scan impossible';
-        }).catch(() => results.ports = 'Erreur'));
-
-        // 7. Speed Test (ne dépend pas de la cible, mesure la connexion)
-        promises.push(runSpeedTest().then(speed => {
-            results.speed = speed || 'Test impossible';
-        }).catch(() => results.speed = 'Erreur'));
-
-        await Promise.all(promises);
-        displayResults(results);
-    });
-
-    async function measurePing(host) {
-        const url = `https://${host}/favicon.ico`;
-        const times = [];
-        for (let i=0; i<3; i++) {
-            const start = performance.now();
-            try { await fetch(url, { mode: 'no-cors', cache: 'no-cache' }); } catch(e) {}
-            const end = performance.now();
-            times.push(end - start);
-        }
-        return Math.round(times.reduce((a,b) => a+b, 0) / times.length);
+    function updateGauge(percent, speedMbps) {
+        const offset = circumference - (percent / 100) * circumference;
+        gaugeFill.style.strokeDashoffset = offset;
+        gaugeText.textContent = speedMbps.toFixed(1) + ' Mbps';
     }
 
-    async function dnsLookup(host) {
-        const types = ['A', 'AAAA', 'MX'];
-        let output = '';
-        for (const type of types) {
-            const resp = await fetch(`https://dns.google/resolve?name=${host}&type=${type}`);
-            const data = await resp.json();
-            if (data.Answer) {
-                const records = data.Answer.map(a => a.data).join(', ');
-                output += `${type}: ${records}\n`;
-            }
-        }
-        return output.trim();
-    }
-
-    async function reverseDns(ip) {
-        const resp = await fetch(`https://api.hackertarget.com/reversedns/?q=${ip}`);
-        return (await resp.text()).trim();
-    }
-
-    async function whoisLookup(domain) {
-        const resp = await fetch(`https://api.hackertarget.com/whois/?q=${domain}`);
-        return (await resp.text()).trim();
-    }
-
-    async function domainAge(domain) {
-        const resp = await fetch(`https://api.hackertarget.com/whois/?q=${domain}`);
-        const text = await resp.text();
-        const creationRegex = /(?:Creation Date|created|Registered on)[:\s]+(.+)/i;
-        const match = text.match(creationRegex);
-        if (match) {
-            const created = new Date(match[1]);
-            if (!isNaN(created)) {
-                const years = Math.floor((Date.now() - created) / (1000*60*60*24*365));
-                return `${years} ans (créé le ${created.toLocaleDateString()})`;
-            }
-        }
-        return null;
-    }
-
-    async function portScan(host) {
-        const resp = await fetch(`https://api.hackertarget.com/nmap/?q=${host}`);
-        return (await resp.text()).trim();
-    }
-
-    async function runSpeedTest() {
-        // Utilise speed.cloudflare.com (nécessite CORS, parfois bloqué)
+    async function measureSpeed() {
         const downloadUrl = 'https://speed.cloudflare.com/__down?bytes=5000000'; // 5 Mo
-        const uploadUrl = 'https://speed.cloudflare.com/__up';
-
-        // Mesure download
-        let downloadSpeed = null;
+        const start = performance.now();
         try {
-            const start = performance.now();
-            const resp = await fetch(downloadUrl, { cache: 'no-cache' });
-            const blob = await resp.blob();
+            const response = await fetch(downloadUrl, { cache: 'no-cache' });
+            const blob = await response.blob();
             const duration = (performance.now() - start) / 1000;
             const bitsLoaded = blob.size * 8;
             const speedBps = bitsLoaded / duration;
-            downloadSpeed = (speedBps / 1000000).toFixed(2); // Mbps
+            return speedBps / 1000000; // Mbps
         } catch (e) {
-            downloadSpeed = 'Échec';
+            console.warn('Speed test failed', e);
+            return 0;
         }
-
-        // Mesure upload (envoi d'un blob de 1 Mo)
-        let uploadSpeed = null;
-        try {
-            const data = new Uint8Array(1000000); // 1 Mo
-            const start = performance.now();
-            await fetch(uploadUrl, { method: 'POST', body: data, cache: 'no-cache' });
-            const duration = (performance.now() - start) / 1000;
-            const bitsUploaded = 1000000 * 8;
-            const speedBps = bitsUploaded / duration;
-            uploadSpeed = (speedBps / 1000000).toFixed(2);
-        } catch (e) {
-            uploadSpeed = 'Échec';
-        }
-
-        return `⬇ ${downloadSpeed} Mbps / ⬆ ${uploadSpeed} Mbps`;
     }
 
-    function displayResults(results) {
-        let html = '';
-        const blocks = [
-            { title: '📶 Ping (latence HTTP)', key: 'ping' },
-            { title: '🌐 DNS (A, AAAA, MX)', key: 'dns' },
-            { title: '🔄 DNS inverse (PTR)', key: 'rdns' },
-            { title: '📝 Whois', key: 'whois' },
-            { title: '📅 Âge du domaine', key: 'age' },
-            { title: '🔍 Scan de ports', key: 'ports' },
-            { title: '⚡ Speed Test', key: 'speed' }
-        ];
-        for (const block of blocks) {
-            html += `<div class="result-block">
-                <h4>${block.title}</h4>
-                <pre>${results[block.key] || 'En attente...'}</pre>
-            </div>`;
-        }
-        resultsContainer.innerHTML = `<div class="result-grid">${html}</div>`;
-    }
+    startBtn.addEventListener('click', async () => {
+        if (testRunning) return;
+        testRunning = true;
+        startBtn.disabled = true;
+        startBtn.textContent = 'Test en cours...';
+        downloadSpeeds = [];
+        gaugeText.textContent = '0 Mbps';
+        updateGauge(0, 0);
+        speedInfo.textContent = '';
 
-    // Capture d'écran
-    document.getElementById('captureBtn').addEventListener('click', async () => {
-        try {
-            const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
-            const video = document.createElement('video');
-            video.srcObject = stream;
-            video.play();
-            video.onloadedmetadata = () => {
-                const canvas = document.createElement('canvas');
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-                canvas.getContext('2d').drawImage(video, 0, 0);
-                stream.getTracks().forEach(track => track.stop());
-                const img = document.createElement('img');
-                img.src = canvas.toDataURL('image/png');
-                const preview = document.getElementById('capturePreview');
-                preview.innerHTML = '';
-                preview.appendChild(img);
-                const downloadBtn = document.createElement('button');
-                downloadBtn.className = 'action-btn';
-                downloadBtn.textContent = '💾 Télécharger';
-                downloadBtn.onclick = () => {
-                    const a = document.createElement('a');
-                    a.href = canvas.toDataURL('image/png');
-                    a.download = 'capture.png';
-                    a.click();
-                };
-                preview.appendChild(downloadBtn);
-            };
-        } catch (err) { alert('Impossible de capturer l\'écran : ' + err.message); }
+        const testDuration = 20000; // 20 secondes
+        const interval = 2000; // mesure toutes les 2 secondes
+        const endTime = Date.now() + testDuration;
+
+        const testLoop = setInterval(async () => {
+            if (Date.now() >= endTime) {
+                clearInterval(testLoop);
+                finishTest();
+                return;
+            }
+            const speed = await measureSpeed();
+            if (speed > 0) {
+                downloadSpeeds.push(speed);
+                // Calcul de la moyenne temporaire
+                const avg = downloadSpeeds.reduce((a,b) => a+b, 0) / downloadSpeeds.length;
+                const maxSpeed = 100; // échelle max 100 Mbps pour la jauge
+                const percent = Math.min((avg / maxSpeed) * 100, 100);
+                updateGauge(percent, avg);
+                speedInfo.textContent = `Dernière mesure : ${speed.toFixed(1)} Mbps | Moyenne : ${avg.toFixed(1)} Mbps`;
+            }
+        }, interval);
+
+        // Lance la première mesure immédiatement
+        const firstSpeed = await measureSpeed();
+        if (firstSpeed > 0) {
+            downloadSpeeds.push(firstSpeed);
+            updateGauge(Math.min((firstSpeed / 100) * 100, 100), firstSpeed);
+        }
+
+        function finishTest() {
+            clearInterval(testLoop);
+            testRunning = false;
+            startBtn.disabled = false;
+            startBtn.textContent = 'Démarrer le test (20s)';
+            if (downloadSpeeds.length > 0) {
+                const finalAvg = downloadSpeeds.reduce((a,b) => a+b, 0) / downloadSpeeds.length;
+                updateGauge(Math.min((finalAvg / 100) * 100, 100), finalAvg);
+                speedInfo.textContent = `Test terminé ! Moyenne sur 20s : ${finalAvg.toFixed(1)} Mbps`;
+            } else {
+                speedInfo.textContent = 'Aucune mesure réussie. Vérifiez votre connexion.';
+            }
+        }
     });
 
 })();
