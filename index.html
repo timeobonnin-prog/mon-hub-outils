@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hub Complet – Speed Test intégré</title>
+    <title>Hub Complet – Speed Test amélioré</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -57,7 +57,7 @@
             from { opacity:0; transform: translateY(5px); }
             to { opacity:1; transform: translateY(0); }
         }
-        /* Styles communs */
+        /* Styles communs (pour les autres onglets, identiques aux versions précédentes) */
         .card { background: rgba(255,255,255,0.03); border: 1px solid #b388ff; border-radius: 12px; padding: 12px; margin-bottom: 10px; }
         .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
         input, select, textarea {
@@ -119,17 +119,23 @@
         .sub-panel { display: none; }
         .sub-panel.active { display: block; }
 
-        /* Speed Test */
-        .speed-test-container {
+        /* Speed Test amélioré */
+        .speed-container {
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 20px;
         }
-        .gauge {
+        .server-info {
+            color: #b388ff;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+        .gauge-wrapper {
             position: relative;
             width: 200px;
             height: 200px;
+            margin: 0 auto;
         }
         .gauge-circle {
             transform: rotate(-90deg);
@@ -145,7 +151,7 @@
             fill: none;
             stroke: #00e5ff;
             stroke-width: 12;
-            stroke-dasharray: 565.48; /* 2 * PI * 90 */
+            stroke-dasharray: 565.48;
             stroke-dashoffset: 565.48;
             transition: stroke-dashoffset 0.2s;
         }
@@ -158,10 +164,23 @@
             font-weight: bold;
             color: #00e5ff;
         }
-        .speed-info {
-            text-align: center;
-            font-size: 1.2rem;
+        .metrics {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
             color: #b388ff;
+            font-size: 0.9rem;
+        }
+        .metric {
+            text-align: center;
+        }
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #00e5ff;
+        }
+        .start-btn {
+            margin-top: 10px;
         }
     </style>
 </head>
@@ -180,7 +199,9 @@
 </div>
 
 <div class="app">
-    <!-- Tous les onglets précédents (identiques) -->
+    <!-- Tous les autres onglets sont identiques aux versions précédentes (calculatrice, convertisseur, chrono, mdp, qr, partage, texte) -->
+    <!-- Je les inclus ci-dessous pour que le code soit complet. -->
+
     <!-- Calculatrice avec historique -->
     <div class="tab active" id="tab-calc">
         <div class="calc-display" id="calcDisplay">0</div>
@@ -297,18 +318,35 @@
         </div>
     </div>
 
-    <!-- Onglet Speed Test simplifié -->
+    <!-- Onglet Speed Test amélioré -->
     <div class="tab" id="tab-speed">
-        <div class="speed-test-container">
-            <h3 style="color:#b388ff;">⚡ Test de vitesse Internet</h3>
-            <div class="gauge" id="gaugeContainer">
+        <div class="speed-container">
+            <h3 style="color:#b388ff;">⚡ Test de vitesse</h3>
+            <div class="server-info">
+                <span>Serveur : Cloudflare (Paris)</span><br>
+                <span id="pingResult" style="color:#00e5ff;">Ping : — ms</span>
+            </div>
+
+            <div class="gauge-wrapper">
                 <svg class="gauge-circle" viewBox="0 0 200 200">
                     <circle class="gauge-bg" cx="100" cy="100" r="90"></circle>
                     <circle class="gauge-fill" id="gaugeFill" cx="100" cy="100" r="90"></circle>
                 </svg>
                 <div class="gauge-text" id="gaugeText">0 Mbps</div>
             </div>
-            <button class="pomo-btn" id="startSpeedTest">Démarrer le test (20s)</button>
+
+            <div class="metrics">
+                <div class="metric">
+                    <div class="metric-label">↓ Téléchargement</div>
+                    <div class="metric-value" id="downloadSpeed">—</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">↑ Téléversement</div>
+                    <div class="metric-value" id="uploadSpeed">—</div>
+                </div>
+            </div>
+
+            <button class="pomo-btn start-btn" id="startSpeedTest">Démarrer le test (20s)</button>
             <div class="speed-info" id="speedInfo"></div>
         </div>
     </div>
@@ -321,7 +359,7 @@
                 <button class="sub-tab-btn" data-sub="crypto">🔐 Chiffrement</button>
                 <button class="sub-tab-btn" data-sub="obfus">🔄 Obfuscation</button>
             </div>
-            <!-- Conversion de bases -->
+            <!-- Sous-panneaux texte (inchangés) -->
             <div class="sub-panel active" id="sub-bases">
                 <textarea id="baseInput" placeholder="Texte ou nombres..."></textarea>
                 <div class="row">
@@ -345,7 +383,6 @@
                 </div>
                 <textarea id="baseOutput" placeholder="Sortie..." readonly></textarea>
             </div>
-            <!-- Chiffrement -->
             <div class="sub-panel" id="sub-crypto">
                 <textarea id="cryptoInput" placeholder="Texte à chiffrer / déchiffrer"></textarea>
                 <div class="row">
@@ -360,7 +397,6 @@
                 </div>
                 <textarea id="cryptoOutput" placeholder="Résultat..." readonly></textarea>
             </div>
-            <!-- Obfuscation -->
             <div class="sub-panel" id="sub-obfus">
                 <textarea id="obfusInput" placeholder="Texte à obfusquer"></textarea>
                 <div class="row">
@@ -447,7 +483,7 @@
     });
     renderHistory();
 
-    // ========== CONVERTISSEUR UNITÉS ==========
+    // ========== CONVERTISSEUR UNITÉS (inchangé) ==========
     const unitData = {
         volume: { units: { 'litre (L)':1, 'millilitre (mL)':1000, 'mètre cube (m³)':0.001, 'gallon US':0.264172, 'pinte US':2.11338, 'cuillère à soupe':66.6667 }, base: 'litre (L)' },
         masse: { units: { 'kilogramme (kg)':1, 'gramme (g)':1000, 'milligramme (mg)':1e6, 'livre (lb)':2.20462, 'once (oz)':35.274 }, base: 'kilogramme (kg)' },
@@ -501,7 +537,7 @@
     document.getElementById('decreaseBtn').addEventListener('click', () => { refValueInput.value = (parseFloat(refValueInput.value)||0)-1; updateTable(); });
     populateUnits();
 
-    // ========== CHRONOMÈTRE ==========
+    // ========== CHRONOMÈTRE (inchangé) ==========
     let chronoInterval, chronoRemaining = 0, chronoRunning = false;
     const chronoTimeSpan = document.getElementById('chronoTime');
     const chronoInput = document.getElementById('chronoInput');
@@ -542,7 +578,7 @@
     });
     chronoResetBtn.addEventListener('click', () => { stopChrono(); chronoRemaining = 0; updateChronoDisplay(); chronoStartBtn.textContent = 'Démarrer'; });
 
-    // ========== VÉRIFICATEUR MDP ==========
+    // ========== VÉRIFICATEUR MDP (inchangé) ==========
     const passwordInput = document.getElementById('passwordInput');
     const strengthFill = document.getElementById('strengthFill');
     const strengthLabel = document.getElementById('strengthLabel');
@@ -560,7 +596,7 @@
         else { strengthFill.style.background = '#66bb6a'; strengthLabel.textContent = 'Fort'; strengthLabel.style.color = '#66bb6a'; }
     });
 
-    // ========== QR CODE ==========
+    // ========== QR CODE (inchangé) ==========
     const qrText = document.getElementById('qrText');
     const qrImage = document.getElementById('qrImage');
     const qrActions = document.getElementById('qrActions');
@@ -589,7 +625,7 @@
         } else alert('Partage non supporté');
     });
 
-    // ========== PARTAGE ==========
+    // ========== PARTAGE (inchangé) ==========
     const siteUrl = 'https://timeobonnin-prog.github.io/mon-hub-outils/';
     document.getElementById('siteUrl').value = siteUrl;
     document.getElementById('copySiteUrl').addEventListener('click', () => { navigator.clipboard.writeText(siteUrl); alert('Lien copié'); });
@@ -598,7 +634,7 @@
     document.getElementById('shareTwitter').href = `https://twitter.com/intent/tweet?text=${encodeURIComponent('Super hub d\'outils !')}&url=${encodeURIComponent(siteUrl)}`;
     document.getElementById('shareMail').href = `mailto:?subject=Outil pratique&body=Salut,%0D%0AVoici un lien vers un hub d'outils : ${encodeURIComponent(siteUrl)}`;
 
-    // ========== OUTIL TEXTE ==========
+    // ========== OUTIL TEXTE (inchangé) ==========
     document.querySelectorAll('.sub-tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.sub-tab-btn').forEach(b => b.classList.remove('active'));
@@ -712,15 +748,20 @@
         document.getElementById('obfusOutput').value = shuffleText(document.getElementById('obfusInput').value);
     });
 
-    // ========== SPEED TEST (NOUVEAU) ==========
+    // ========== SPEED TEST (AMÉLIORÉ) ==========
     const gaugeFill = document.getElementById('gaugeFill');
     const gaugeText = document.getElementById('gaugeText');
+    const downloadSpeedEl = document.getElementById('downloadSpeed');
+    const uploadSpeedEl = document.getElementById('uploadSpeed');
+    const pingResultEl = document.getElementById('pingResult');
     const speedInfo = document.getElementById('speedInfo');
     const startBtn = document.getElementById('startSpeedTest');
-    const circumference = 2 * Math.PI * 90; // environ 565.48
+    const circumference = 2 * Math.PI * 90; // 565.48
 
     let testRunning = false;
     let downloadSpeeds = [];
+    let uploadSpeeds = [];
+    let pingValues = [];
 
     function updateGauge(percent, speedMbps) {
         const offset = circumference - (percent / 100) * circumference;
@@ -728,7 +769,19 @@
         gaugeText.textContent = speedMbps.toFixed(1) + ' Mbps';
     }
 
-    async function measureSpeed() {
+    async function measurePing() {
+        const pingUrl = 'https://speed.cloudflare.com/__down?bytes=100'; // petit fichier
+        const start = performance.now();
+        try {
+            await fetch(pingUrl, { cache: 'no-cache', mode: 'no-cors' });
+            const end = performance.now();
+            return end - start;
+        } catch (e) {
+            return 0;
+        }
+    }
+
+    async function measureDownloadSpeed() {
         const downloadUrl = 'https://speed.cloudflare.com/__down?bytes=5000000'; // 5 Mo
         const start = performance.now();
         try {
@@ -736,10 +789,21 @@
             const blob = await response.blob();
             const duration = (performance.now() - start) / 1000;
             const bitsLoaded = blob.size * 8;
-            const speedBps = bitsLoaded / duration;
-            return speedBps / 1000000; // Mbps
+            return bitsLoaded / duration / 1000000; // Mbps
         } catch (e) {
-            console.warn('Speed test failed', e);
+            return 0;
+        }
+    }
+
+    async function measureUploadSpeed() {
+        const uploadUrl = 'https://speed.cloudflare.com/__up';
+        const data = new Uint8Array(1000000); // 1 Mo
+        const start = performance.now();
+        try {
+            await fetch(uploadUrl, { method: 'POST', body: data, cache: 'no-cache' });
+            const duration = (performance.now() - start) / 1000;
+            return 8 / duration; // 1 Mo = 8 Mbits, donc Mbps = 8 / durée en secondes
+        } catch (e) {
             return 0;
         }
     }
@@ -750,52 +814,64 @@
         startBtn.disabled = true;
         startBtn.textContent = 'Test en cours...';
         downloadSpeeds = [];
+        uploadSpeeds = [];
+        pingValues = [];
         gaugeText.textContent = '0 Mbps';
         updateGauge(0, 0);
+        downloadSpeedEl.textContent = '—';
+        uploadSpeedEl.textContent = '—';
+        pingResultEl.textContent = 'Ping : — ms';
         speedInfo.textContent = '';
 
-        const testDuration = 20000; // 20 secondes
-        const interval = 2000; // mesure toutes les 2 secondes
+        // Mesurer le ping d'abord (moyenne de 3)
+        for (let i=0; i<3; i++) {
+            const p = await measurePing();
+            if (p > 0) pingValues.push(p);
+        }
+        const avgPing = pingValues.length ? Math.round(pingValues.reduce((a,b)=>a+b,0) / pingValues.length) : 0;
+        pingResultEl.textContent = `Ping : ${avgPing} ms`;
+
+        // Test de download sur 20 secondes
+        const testDuration = 20000;
+        const interval = 2000;
         const endTime = Date.now() + testDuration;
 
         const testLoop = setInterval(async () => {
             if (Date.now() >= endTime) {
                 clearInterval(testLoop);
-                finishTest();
+                // Mesure upload (une seule fois)
+                const upload = await measureUploadSpeed();
+                uploadSpeeds.push(upload);
+                const avgUpload = uploadSpeeds.length ? uploadSpeeds[0].toFixed(1) : '0.0';
+                uploadSpeedEl.textContent = avgUpload + ' Mbps';
+
+                // Finalisation download
+                if (downloadSpeeds.length > 0) {
+                    const avgDownload = downloadSpeeds.reduce((a,b)=>a+b,0) / downloadSpeeds.length;
+                    const maxScale = 100;
+                    const percent = Math.min((avgDownload / maxScale) * 100, 100);
+                    updateGauge(percent, avgDownload);
+                    downloadSpeedEl.textContent = avgDownload.toFixed(1) + ' Mbps';
+                    speedInfo.textContent = `Test terminé. Moyenne sur 20s : ${avgDownload.toFixed(1)} Mbps ↓ | ${avgUpload} Mbps ↑`;
+                } else {
+                    speedInfo.textContent = 'Aucune mesure de débit réussie.';
+                }
+                testRunning = false;
+                startBtn.disabled = false;
+                startBtn.textContent = 'Démarrer le test (20s)';
                 return;
             }
-            const speed = await measureSpeed();
+
+            const speed = await measureDownloadSpeed();
             if (speed > 0) {
                 downloadSpeeds.push(speed);
-                // Calcul de la moyenne temporaire
-                const avg = downloadSpeeds.reduce((a,b) => a+b, 0) / downloadSpeeds.length;
-                const maxSpeed = 100; // échelle max 100 Mbps pour la jauge
-                const percent = Math.min((avg / maxSpeed) * 100, 100);
-                updateGauge(percent, avg);
-                speedInfo.textContent = `Dernière mesure : ${speed.toFixed(1)} Mbps | Moyenne : ${avg.toFixed(1)} Mbps`;
+                const currentAvg = downloadSpeeds.reduce((a,b)=>a+b,0) / downloadSpeeds.length;
+                const maxScale = 100;
+                const percent = Math.min((currentAvg / maxScale) * 100, 100);
+                updateGauge(percent, currentAvg);
+                downloadSpeedEl.textContent = currentAvg.toFixed(1) + ' Mbps';
             }
         }, interval);
-
-        // Lance la première mesure immédiatement
-        const firstSpeed = await measureSpeed();
-        if (firstSpeed > 0) {
-            downloadSpeeds.push(firstSpeed);
-            updateGauge(Math.min((firstSpeed / 100) * 100, 100), firstSpeed);
-        }
-
-        function finishTest() {
-            clearInterval(testLoop);
-            testRunning = false;
-            startBtn.disabled = false;
-            startBtn.textContent = 'Démarrer le test (20s)';
-            if (downloadSpeeds.length > 0) {
-                const finalAvg = downloadSpeeds.reduce((a,b) => a+b, 0) / downloadSpeeds.length;
-                updateGauge(Math.min((finalAvg / 100) * 100, 100), finalAvg);
-                speedInfo.textContent = `Test terminé ! Moyenne sur 20s : ${finalAvg.toFixed(1)} Mbps`;
-            } else {
-                speedInfo.textContent = 'Aucune mesure réussie. Vérifiez votre connexion.';
-            }
-        }
     });
 
 })();
